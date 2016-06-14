@@ -1,10 +1,10 @@
 //============================================================================
-// Name        : sorting.cpp
+// Name        : cppexplorer.cpp
 // Author      : Vishwadeep Singh
 // Version     :
 // Copyright   : GNU License
 // Description : bubble sort, insertion sort, merge sort
-//		 selection sort, shell sort, quick sort
+//				selection sort, shell sort, quick sort
 //============================================================================
 
 #include <iostream>
@@ -14,7 +14,7 @@
 #include <sys/time.h>
 
 #define SIZE 15
-#define SETSIZE 1000
+#define SETSIZE 10
 #define debug 0
 #define tempdebug 0
 #define timedebug 1
@@ -529,6 +529,14 @@ int main() {
 			}
 		}
 	}
+
+	for (int i = 0; i < generate_stats; i++) {
+		delete[] data[i];
+		delete[] backupdata[i];
+	}
+	delete[] data;
+	delete[] backupdata;
+	delete[] sample_size;
 
 	cout << "Analysis completed." << endl;
 	return 0;
