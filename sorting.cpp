@@ -1,10 +1,10 @@
 //============================================================================
-// Name        : cppexplorer.cpp
+// Name        : sorting.cpp
 // Author      : Vishwadeep Singh
 // Version     :
 // Copyright   : GNU License
 // Description : bubble sort, insertion sort, merge sort
-//				selection sort, shell sort, quick sort
+//		 selection sort, shell sort, quick sort
 //============================================================================
 
 #include <iostream>
@@ -13,11 +13,12 @@
 #include <time.h>
 #include <sys/time.h>
 
-#define SIZE 5
-#define SETSIZE 10000
+#define SIZE 15
+#define SETSIZE 1000
 #define debug 0
 #define tempdebug 0
 #define timedebug 1
+#define errdebug 1
 
 using namespace std;
 
@@ -53,71 +54,65 @@ double endtimein (const string str) {
 	return elapsedTimein;
 }
 
-void merge(int *arr,int min,int mid,int max)
-{
-	if (debug)
-		cout << "checking again ";
-	for (int j = 0; j < max; j++) {
-		if (debug)
-			cout << arr[j] << " ";
-	}
-	if (debug)
-		cout << endl;
-  int tmp[max+1];
-  int i,j,k,m;
-  j=min;
-  m=mid+1;
-  for(i=min; j<=mid && m<=max ; i++)
-  {
-     if(arr[j]<=arr[m])
-     {
-         tmp[i]=arr[j];
-         j++;
-     }
-     else
-     {
-         tmp[i]=arr[m];
-         m++;
-     }
-  }
-  if(j>mid)
-  {
-     for(k=m; k<=max; k++)
-     {
-         tmp[i]=arr[k];
-         i++;
-     }
-  }
-  else
-  {
-     for(k=j; k<=mid; k++)
-     {
-        tmp[i]=arr[k];
+// Merges two subarrays of arr[].
+// First subarray is arr[l..m]
+// Second subarray is arr[m+1..r]
+void merge(int arr[], int l, int m, int r) {
+    int i, j, k;
+    int n1 = m - l + 1;
+    int n2 =  r - m;
+
+    /* create temp arrays */
+    int L[n1], R[n2];
+
+    /* Copy data to temp arrays L[] and R[] */
+    for (i = 0; i < n1; i++)
+        L[i] = arr[l + i];
+    for (j = 0; j < n2; j++)
+        R[j] = arr[m + 1+ j];
+
+    /* Merge the temp arrays back into arr[l..r]*/
+    i = 0; // Initial index of first subarray
+    j = 0; // Initial index of second subarray
+    k = l; // Initial index of merged subarray
+    while (i < n1 && j < n2) {
+        if (L[i] <= R[j]) {
+            arr[k] = L[i];
+            i++;
+        }
+        else {
+            arr[k] = R[j];
+            j++;
+        }
+        k++;
+    }
+    /* Copy the remaining elements of L[], if there are any */
+    while (i < n1) {
+        arr[k] = L[i];
         i++;
-     }
-  }
-  for(k=min; k<=max; k++)
-     arr[k]=tmp[k];
+        k++;
+    }
+    /* Copy the remaining elements of R[], if there
+       are any */
+    while (j < n2) {
+        arr[k] = R[j];
+        j++;
+        k++;
+    }
 }
 
-void part(int *arr,int min,int max)
-{
-	if (debug)
-		cout << "checking ";
-	for (int j = 0; j < max; j++) {
-		if (debug)
-			cout << arr[j] << " ";
-	}
-	if (debug)
-		cout << endl;
- int mid;
- if(min<max)
- {
-   mid=(min+max)/2;
-   part(arr,min,mid);
-   part(arr,mid+1,max);
-   merge(arr,min,mid,max);
- }
+/* l is for left index and r is right index of the
+   sub-array of arr to be sorted */
+void mergeSort(int arr[], int l, int r) {
+	if (l < r) {
+		// Same as (l+r)/2, but avoids overflow for
+		// large l and h
+		int m = l+(r-l)/2;
+		// Sort first and second halves
+		mergeSort(arr, l, m);
+		mergeSort(arr, m+1, r);
+		merge(arr, l, m, r);
+    }
 }
 
 
@@ -146,6 +141,39 @@ void quicksort(int *x,int first,int last){
          quicksort(x,first,j-1);
          quicksort(x,j+1,last);
     }
+}
+
+void shellsort(int *arr, int num)
+{
+    int i, j, k, tmp;
+    for (i = num / 2; i > 0; i = i / 2)
+    {
+        for (j = i; j < num; j++)
+        {
+            for(k = j - i; k >= 0; k = k - i)
+            {
+                if (arr[k+i] >= arr[k])
+                    break;
+                else
+                {
+                    tmp = arr[k];
+                    arr[k] = arr[k+i];
+                    arr[k+i] = tmp;
+                }
+            }
+        }
+    }
+}
+
+int validatesort (int *arr, int size) {
+	int prev = arr[0];
+	for (int i = 0; i < size; i++) {
+		if (prev > arr[i]) {
+			return 1;
+		}
+		prev = arr[i];
+	}
+	return 0;
 }
 
 int main() {
@@ -223,6 +251,18 @@ int main() {
 	}
 	endtime("bubble sort finished");
 
+	for (int i = 0; i < generate_stats; i++) {
+		if (validatesort(data[i],sample_size[i])) {
+			cout << "Error while validating results for bubble sort, data size: " << sample_size[i] << endl;
+			if (errdebug) {
+				for (int j = 0; j < sample_size[i]; j++) {
+					cout << data[i][j] << " ";
+				}
+				cout << endl;
+			}
+		}
+	}
+
 	// reverting back;
 	for (int i = 0; i < generate_stats; i++) {
 		for (int j = 0; j < sample_size[i]; j++) {
@@ -242,7 +282,7 @@ int main() {
 			cout << endl;
 		starttimein();
 		// insertion sort
-		for (int j = 1 ; j < ( sample_size[i] - 1 ); j++) {
+		for (int j = 1 ; j < ( sample_size[i] ); j++) {
 		    int d = j;
 		    while ( d > 0 && data[i][d] < data[i][d-1]) {
 		      int t          = data[i][d];
@@ -276,6 +316,18 @@ int main() {
 	}
 	endtime("insertion sort finished");
 
+	for (int i = 0; i < generate_stats; i++) {
+		if (validatesort(data[i],sample_size[i])) {
+			cout << "Error while validating results for insertion sort, data size: " << sample_size[i] << endl;
+			if (errdebug) {
+				for (int j = 0; j < sample_size[i]; j++) {
+					cout << data[i][j] << " ";
+				}
+				cout << endl;
+			}
+		}
+	}
+
 	// reverting back;
 	for (int i = 0; i < generate_stats; i++) {
 		for (int j = 0; j < sample_size[i]; j++) {
@@ -295,7 +347,7 @@ int main() {
 			cout << endl;
 		starttimein();
 		// merge sort
-		part(data[i],0,sample_size[i]-1);
+		mergeSort(data[i], 0, sample_size[i]-1);
 		if (debug)
 			cout << "sorting ";
 		for (int j = 0; j < sample_size[i]; j++) {
@@ -310,6 +362,18 @@ int main() {
 		endtimein("single merge sort finished");
 	}
 	endtime("merge sort finished");
+
+	for (int i = 0; i < generate_stats; i++) {
+		if (validatesort(data[i],sample_size[i])) {
+			cout << "Error while validating results for merge sort, data size: " << sample_size[i] << endl;
+			if (errdebug) {
+				for (int j = 0; j < sample_size[i]; j++) {
+					cout << data[i][j] << " ";
+				}
+				cout << endl;
+			}
+		}
+	}
 
 	// reverting back;
 	for (int i = 0; i < generate_stats; i++) {
@@ -345,6 +409,18 @@ int main() {
 		endtimein("single quick sort finished");
 	}
 	endtime("quick sort finished");
+
+	for (int i = 0; i < generate_stats; i++) {
+		if (validatesort(data[i],sample_size[i])) {
+			cout << "Error while validating results for quick sort, data size: " << sample_size[i] << endl;
+			if (errdebug) {
+				for (int j = 0; j < sample_size[i]; j++) {
+					cout << data[i][j] << " ";
+				}
+				cout << endl;
+			}
+		}
+	}
 
 	// reverting back;
 	for (int i = 0; i < generate_stats; i++) {
@@ -395,6 +471,64 @@ int main() {
 	}
 	endtime("selection sort finished");
 
+	for (int i = 0; i < generate_stats; i++) {
+		if (validatesort(data[i],sample_size[i])) {
+			cout << "Error while validating results for selection sort, data size: " << sample_size[i] << endl;
+			if (errdebug) {
+				for (int j = 0; j < sample_size[i]; j++) {
+					cout << data[i][j] << " ";
+				}
+				cout << endl;
+			}
+		}
+	}
+
+	// reverting back;
+	for (int i = 0; i < generate_stats; i++) {
+		for (int j = 0; j < sample_size[i]; j++) {
+			data[i][j] = backupdata[i][j];
+		}
+	}
+
+	starttime();
+	for (int i = 0; i < generate_stats; i++) {
+		if (debug)
+			cout << "sorting ";
+		for (int j = 0; j < sample_size[i]; j++) {
+			if (debug)
+				cout << data[i][j] << " ";
+		}
+		if (debug)
+			cout << endl;
+		starttimein();
+		// shell sort
+		shellsort(data[i],sample_size[i]);
+		if (debug)
+			cout << "sorting ";
+		for (int j = 0; j < sample_size[i]; j++) {
+			if (debug)
+				cout << data[i][j] << " ";
+		}
+		if (debug)
+			cout << endl;
+
+		if (timedebug)
+			cout << "data size = " << sample_size[i] << " ";
+		endtimein("single shell sort finished");
+	}
+	endtime("shell sort finished");
+
+	for (int i = 0; i < generate_stats; i++) {
+		if (validatesort(data[i],sample_size[i])) {
+			cout << "Error while validating results for shell sort, data size: " << sample_size[i] << endl;
+			if (errdebug) {
+				for (int j = 0; j < sample_size[i]; j++) {
+					cout << data[i][j] << " ";
+				}
+				cout << endl;
+			}
+		}
+	}
 
 	cout << "Analysis completed." << endl;
 	return 0;
